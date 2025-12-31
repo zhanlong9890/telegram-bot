@@ -213,12 +213,8 @@ from error_handler import error_handler
 
 def main():
     """主函数"""
-    # 创建应用，配置连接参数
+    # 创建应用
     application = Application.builder().token(BOT_TOKEN).build()
-    
-    # 配置连接超时和重试
-    application.bot.request.connect_timeout = 30.0  # 连接超时30秒
-    application.bot.request.read_timeout = 30.0  # 读取超时30秒
     
     # 注册命令处理器
     application.add_handler(CommandHandler("start", start))
