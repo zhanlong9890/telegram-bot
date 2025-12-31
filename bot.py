@@ -213,8 +213,12 @@ from error_handler import error_handler
 
 def main():
     """主函数"""
-    # 创建应用
+    # 创建应用，配置连接参数
     application = Application.builder().token(BOT_TOKEN).build()
+    
+    # 配置连接超时和重试
+    application.bot.request.connect_timeout = 30.0  # 连接超时30秒
+    application.bot.request.read_timeout = 30.0  # 读取超时30秒
     
     # 注册命令处理器
     application.add_handler(CommandHandler("start", start))
@@ -294,9 +298,30 @@ def main():
     # 注册错误处理器
     application.add_error_handler(error_handler)
     
-    # 启动机器人
+    # 启动机器人（带重试机制）
     logger.info("机器人启动中...")
-    application.run_polling(allowed_updates=Update.ALL_TYPES)
+    max_retries = 5
+    retry_count = 0
+    
+    while retry_count < max_retries:
+        try:
+            application.run_polling(
+                allowed_updates=Update.ALL_TYPES,
+                drop_pending_updates=True,
+                close_loop=False
+            )
+            break  # 如果成功启动，退出循环
+        except Exception as e:
+            retry_count += 1
+            logger.error(f"启动失败 (尝试 {retry_count}/{max_retries}): {e}")
+            if retry_count < max_retries:
+                import time
+                wait_time = retry_count * 10  # 每次重试等待时间递增
+                logger.info(f"等待 {wait_time} 秒后重试...")
+                time.sleep(wait_time)
+            else:
+                logger.critical("达到最大重试次数，启动失败")
+                raise
 
 
 if __name__ == '__main__':
