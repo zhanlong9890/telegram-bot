@@ -6,17 +6,23 @@ import logging
 import traceback
 from telegram import Update
 from telegram.ext import ContextTypes
-from telegram.error import (
-    TelegramError,
-    NetworkError,
-    TimedOut,
-    RetryAfter,
-    BadRequest,
-    Unauthorized,
-    Conflict
-)
+from telegram.error import TelegramError
 
 logger = logging.getLogger(__name__)
+
+# 兼容不同版本的异常类导入
+try:
+    from telegram.error import (
+        NetworkError,
+        TimedOut,
+        RetryAfter,
+        BadRequest,
+        Unauthorized,
+        Conflict
+    )
+except ImportError:
+    # 如果导入失败，使用基类并通过错误消息判断
+    NetworkError = TimedOut = RetryAfter = BadRequest = Unauthorized = Conflict = TelegramError
 
 
 async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -33,21 +39,25 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logger.error(f"发生错误: {error}", exc_info=error)
     
     # 根据错误类型进行不同处理
-    if isinstance(error, RetryAfter):
-        # 速率限制，等待后重试
-        logger.warning(f"速率限制，需要等待 {error.retry_after} 秒")
+    error_str = str(error).lower()
+    error_type = type(error).__name__
+    
+    # 速率限制
+    if 'retry_after' in error_str or 'RetryAfter' in error_type:
+        if hasattr(error, 'retry_after'):
+            logger.warning(f"速率限制，需要等待 {error.retry_after} 秒")
+        else:
+            logger.warning(f"速率限制: {error}")
         return
     
-    elif isinstance(error, Unauthorized):
-        # 未授权错误（Token错误等）
+    # 未授权错误（Token错误等）
+    if 'unauthorized' in error_str or 'Unauthorized' in error_type:
         logger.critical(f"未授权错误: {error}")
         return
     
-    elif isinstance(error, BadRequest):
-        # 请求错误（可能是参数错误）
+    # 请求错误
+    if 'bad request' in error_str or 'BadRequest' in error_type:
         logger.warning(f"请求错误: {error}")
-        
-        # 尝试向用户发送友好错误消息
         if update and update.effective_message:
             try:
                 await update.effective_message.reply_text(
@@ -55,22 +65,25 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 )
             except:
                 pass
+        return
     
-    elif isinstance(error, NetworkError):
-        # 网络错误
+    # 网络错误
+    if 'network' in error_str or 'NetworkError' in error_type:
         logger.warning(f"网络错误: {error}")
-        # 网络错误通常是暂时的，不需要通知用户
+        return
     
-    elif isinstance(error, TimedOut):
-        # 超时错误
+    # 超时错误
+    if 'timeout' in error_str or 'TimedOut' in error_type:
         logger.warning(f"请求超时: {error}")
+        return
     
-    elif isinstance(error, Conflict):
-        # 冲突错误（可能是多个实例同时运行）
+    # 冲突错误
+    if 'conflict' in error_str or 'Conflict' in error_type:
         logger.critical(f"冲突错误: {error}")
+        return
     
-    elif isinstance(error, TelegramError):
-        # 其他 Telegram 错误
+    # 其他 Telegram 错误
+    if isinstance(error, TelegramError):
         logger.error(f"Telegram 错误: {error}")
     
     else:
