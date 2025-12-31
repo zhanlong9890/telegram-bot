@@ -1,0 +1,19 @@
+.env
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.log
+venv/
+env/
+ENV/
+.venv
+bot.log
+bot_error.log
+nssm/
+# 数据库文件（包含用户数据，不应提交）
+*.db
+*.db-journal
+bot_data.db
+

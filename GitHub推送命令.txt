@@ -1,0 +1,62 @@
+═══════════════════════════════════════════════════════════
+  GitHub 推送命令（完整版）
+═══════════════════════════════════════════════════════════
+
+【第一步】在 GitHub 创建仓库
+─────────────────────────────────────────────────────────
+1. 访问 https://github.com
+2. 登录你的账号
+3. 点击右上角 "+" → "New repository"
+4. 输入仓库名称（如：telegram-bot）
+5. 选择 Public 或 Private
+6. 不要勾选 "Initialize with README"
+7. 点击 "Create repository"
+8. 复制仓库地址（如：https://github.com/用户名/仓库名.git）
+
+【第二步】在本地执行命令
+─────────────────────────────────────────────────────────
+打开 PowerShell 或 CMD，执行以下命令：
+
+cd D:\app\TG生态
+
+git init
+git add .
+git commit -m "准备部署"
+git remote add origin https://github.com/你的用户名/你的仓库名.git
+git branch -M main
+git push -u origin main
+
+【注意】替换命令中的：
+- 你的用户名 → 你的 GitHub 用户名
+- 你的仓库名 → 你创建的仓库名称
+
+【第三步】登录认证
+─────────────────────────────────────────────────────────
+如果提示需要登录：
+
+1. 用户名：输入你的 GitHub 用户名
+2. 密码：输入 Personal Access Token（不是密码！）
+
+如何获取 Token：
+1. GitHub → Settings → Developer settings
+2. Personal access tokens → Tokens (classic)
+3. Generate new token (classic)
+4. 勾选 repo 权限
+5. Generate token
+6. 复制 Token（只显示一次！）
+
+═══════════════════════════════════════════════════════════
+  最简单方法：使用 GitHub Desktop
+═══════════════════════════════════════════════════════════
+
+1. 下载：https://desktop.github.com/
+2. 安装并登录 GitHub 账号
+3. File → Add Local Repository
+4. 选择：D:\app\TG生态
+5. 点击 "Publish repository"
+6. 完成！
+
+═══════════════════════════════════════════════════════════
+
+详细说明请查看：GitHub推送指南.md
+
